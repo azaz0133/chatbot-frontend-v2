@@ -3,11 +3,11 @@
     <v-list class="pa-1">
       <v-list-tile avatar>
         <v-list-tile-avatar>
-          <img src="https://randomuser.me/api/portraits/men/85.jpg" />
+          <img src="https://www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png" />
         </v-list-tile-avatar>
 
         <v-list-tile-content>
-          <v-list-tile-title>John Leider</v-list-tile-title>
+          <v-list-tile-title>{{getUsername}}</v-list-tile-title>
         </v-list-tile-content>
       </v-list-tile>
     </v-list>
@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import { cAuth } from "../utils/auth";
 export default {
   props: {
     drawer: {
@@ -37,6 +38,7 @@ export default {
     }
   },
   data: () => ({
+    username: "",
     navs: [
       {
         title: "Intent",
@@ -45,6 +47,10 @@ export default {
       {
         title: "Entity",
         route: "/entity"
+      },
+      {
+        title: "Training",
+        route: "/train"
       }
     ]
   }),
@@ -53,6 +59,17 @@ export default {
       if (newProp) {
         this.closeDrawer(false);
       }
+    }
+  },
+  updated() {
+    const auth = cAuth();
+    if (auth) {
+      this.username = auth;
+    }
+  },
+  computed: {
+    getUsername() {
+      return this.username;
     }
   }
 };

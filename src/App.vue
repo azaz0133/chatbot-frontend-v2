@@ -1,8 +1,15 @@
 <template>
   <v-app>
-    <drawer-left :drawer="isOpenDrawerLeft" :closeDrawer="closeLeftDrawer" />
+    <drawer-left
+      :drawer="isOpenDrawerLeft"
+      :closeDrawer="closeLeftDrawer"
+      v-show="this.$route.name != 'welcome'"
+    />
     <v-toolbar app color="cyan darken-1">
-      <v-toolbar-side-icon @click="isOpenDrawerLeft = !isOpenDrawerLeft"></v-toolbar-side-icon>
+      <v-toolbar-side-icon
+        @click="isOpenDrawerLeft = !isOpenDrawerLeft"
+        v-show="this.$route.name != 'welcome'"
+      ></v-toolbar-side-icon>
       <v-toolbar-title class="headline text-uppercase">
         <span>Dialogflow</span>
         <span class="font-weight-light">CHAT BOT</span>
@@ -16,7 +23,7 @@
       <!-- <span class="mr-2">Latest Release</span>
       </v-btn>-->
     </v-toolbar>
-      <drawer-right></drawer-right>
+    <drawer-right></drawer-right>
     <v-content>
       <router-view></router-view>
     </v-content>
@@ -30,11 +37,12 @@ import DrawerRight from "./components/DrawerRight";
 export default {
   name: "App",
   components: {
-    DrawerLeft,DrawerRight
+    DrawerLeft,
+    DrawerRight
   },
   data() {
     return {
-      isOpenDrawerLeft: false,
+      isOpenDrawerLeft: false
     };
   },
   methods: {
@@ -48,6 +56,13 @@ export default {
 </script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Source Sans Pro", sans-serif;
+  line-height: 1.5;
+}
+
 .center_div {
   position: absolute;
   top: 50%;
