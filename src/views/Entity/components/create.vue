@@ -64,6 +64,7 @@ export default {
       if (this.synonymsValue == "" || this.correctValue == "") {
         return alert("Wrong input");
       }
+      this.synonymsValue = this.synonymsValue + "," + this.correctValue
       this.itemsAdd.push({
         value: this.correctValue,
         synonyms: this.synonymsValue.split(",")

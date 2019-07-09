@@ -117,6 +117,7 @@ export default {
       if (this.message != "")
         Axios.get(API + "/proxy/message_test/" + this.message).then(
           ({ data: { results } }) => {
+            console.log(results);
             this.expandAll();
             this.detect.intent =
               results[0]["queryResult"]["intent"]["displayName"];

@@ -64,17 +64,35 @@ export default {
       })
         .then(({ data, status }) => {
           if (status === 201) {
+            this.$notify({
+              group: "foo",
+              title: "Welcome Back",
+              type: "success",
+              text: "....."
+            });
             const token = data["token"];
             this.note = "Login successful";
             window.sessionStorage.setItem("auth", token);
             this.$router.push("/intent");
           } else {
-            alert("Authentication Fail");
+            console.log("object");
+            this.$notify({
+              group: "foo",
+              title: "Authentication Fail",
+              type: "warn",
+              text: "try again"
+            });
           }
         })
         .catch(err => {
           console.log(err.response.data);
-          this.this.note = "Login failed!";
+          this.note = "Login failed!";
+          this.$notify({
+            group: "foo",
+            title: "Authentication Fail",
+            type: "warn",
+            text: err.response.data.message
+          });
         });
     },
     inputFocus() {

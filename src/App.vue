@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <notifications group="foo"  position="top left"/>
     <drawer-left
       :drawer="isOpenDrawerLeft"
       :closeDrawer="closeLeftDrawer"
