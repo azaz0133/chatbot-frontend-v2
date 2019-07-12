@@ -45,12 +45,8 @@ export default {
         route: "/intent"
       },
       {
-        title: "Entity",
+        title: "Attribute",
         route: "/entity"
-      },
-      {
-        title: "Training",
-        route: "/train"
       }
     ]
   }),

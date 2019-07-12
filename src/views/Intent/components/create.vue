@@ -32,13 +32,12 @@
         </v-layout>
       </v-card>
     </v-flex>
-    <br />
     <v-layout row wrap>
       <v-flex md12 xs12 lg12>
         <v-card>
           <v-card-title class="headline">Response & Condition</v-card-title>
+          <v-btn @click="addCondition" fab top class="primary">ADD</v-btn>
           <v-card-text>
-            <v-btn @click="addCondition" class="primary">ADD</v-btn>
             <v-layout row wrap v-for="(r,i) in cLen" :key="i">
               <v-flex md3>
                 <v-autocomplete
@@ -53,7 +52,7 @@
               <v-flex md3>
                 <v-autocomplete
                   box
-                  label="Entity"
+                  label="Attribute"
                   :disabled="resData[i].isAdd"
                   v-model="resData[i].entity"
                   :items="aEntities"
@@ -119,7 +118,7 @@
 
 <script>
 import Axios from "axios";
-import { API } from '../../../constant'
+import { API } from "../../../constant";
 export default {
   data: () => ({
     phraseTexts: [],

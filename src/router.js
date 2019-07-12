@@ -22,7 +22,13 @@ export default new Router({
     {
       path: "/",
       name: "welcome",
-      component: Welcome
+      component: Welcome,
+      // redirect: function(to) {
+      //   const token = window.sessionStorage.getItem("auth");
+      //   if (token) {
+      //     return "/intent";
+      //   }
+      // }
     },
     {
       path: "/intent",
