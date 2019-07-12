@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-tabs v-model="tabActive" color="cyan" dark slider-color="yellow">
       <v-tab v-for="tab in ['Attributes']" :key="tab" ripple>{{tab}}</v-tab>
       <v-tab-item>
@@ -10,15 +10,18 @@
           <v-icon large>add</v-icon>
         </v-btn>
         <v-layout row wrap class="mt-3">
-          <v-flex md3 lg3 xs12 v-for="(item,index) in items" :key="item['attribure']">
-            <v-card class="ma-2">
+          <v-flex md4 lg3 xs12 v-for="(item,index) in items" :key="item['attribute']">
+            <v-card
+              class="ma-2 elevation-100"
+              :class="index % 2 == 0 ?'info white--text' :'primary white--text' "
+            >
               <v-card-text>
                 <v-layout row wrap>
                   <v-flex md5 lg5 xs5>
-                    <h class="subtitle primary--text">Attribute</h>
+                    <h3 class="subtitle white--text">Attribute</h3>
                   </v-flex>
                   <v-flex md5 lg5 xs5>
-                    <h4 class="subtitle success--text">Value</h4>
+                    <h3 class="subtitle white--text">Value</h3>
                   </v-flex>
                   <v-flex md1 lg1 xs1>
                     <v-icon size="15" class="click" color="warning" @click="edit(index)">edit</v-icon>
@@ -26,8 +29,14 @@
                   <v-flex md1 lg1 xs1>
                     <v-icon size="15" class="click" color="error" @click="del(item,index)">delete</v-icon>
                   </v-flex>
-                  <v-flex md5 lg5 xs5>{{item['attribute']}}</v-flex>
-                  <v-flex md6 lg6 xs6>{{item['value']}}</v-flex>
+                  <v-flex md5 lg5 xs5>
+                    <p>{{item['attribute']}}</p>
+                  </v-flex>
+                  <v-flex md7 lg7 xs7>
+                    <ol>
+                      <li v-for="value in item['value'].split(',')" :key="value">{{value}}</li>
+                    </ol>
+                  </v-flex>
                 </v-layout>
               </v-card-text>
             </v-card>
@@ -45,7 +54,11 @@
         </v-card-text>
         <v-card-text v-else>
           <v-text-field v-model="attribute" label="attribute"></v-text-field>
-          <v-text-field v-model="value" label="value"></v-text-field>
+          <v-text-field
+            v-model="value"
+            label="value"
+            hint="you can add many attribute by seperate value with ','"
+          ></v-text-field>
         </v-card-text>
         <v-card-actions v-show="!isLoadingCreate">
           <v-spacer></v-spacer>
@@ -64,7 +77,11 @@
         </v-card-text>
         <v-card-text v-else>
           <v-text-field v-model="attribute" label="attribute"></v-text-field>
-          <v-text-field v-model="value" label="value"></v-text-field>
+          <v-text-field
+            v-model="value"
+            hint="you can add many attribute by seperate value with ','"
+            label="value"
+          ></v-text-field>
         </v-card-text>
         <v-card-actions v-show="!isLoadingCreate">
           <v-spacer></v-spacer>
@@ -92,10 +109,10 @@ export default {
     value: "",
     isLoadingCreate: false,
     items: [],
-    indexEdit:""
+    indexEdit: ""
   }),
   created() {
-    this.isLoadingCreate = true
+    this.isLoadingCreate = true;
     Axios.get(API + "/proxy/fs/document?collection=Attribute").then(
       ({ data: { data } }) => {
         this.items = data;
@@ -151,7 +168,7 @@ export default {
         });
     },
     edit(index) {
-      this.indexEdit = index
+      this.indexEdit = index;
       this.attribute = this.items[index].attribute;
       this.value = this.items[index].value;
       this.dialogEdit = true;
@@ -167,8 +184,8 @@ export default {
       })
         .then(({ data }) => {
           console.log(data);
-          this.items[this.indexEdit].attribute = this.attribute
-          this.items[this.indexEdit].value = this.value
+          this.items[this.indexEdit].attribute = this.attribute;
+          this.items[this.indexEdit].value = this.value;
           this.value = "";
           this.attribute = "";
           this.dialogEdit = false;
