@@ -90,6 +90,7 @@
 <script>
 import Axios from "axios";
 import { API } from "../constant";
+import uuid from "uuid/v4";
 export default {
   components: {},
   data: () => ({
@@ -97,6 +98,7 @@ export default {
     expand: [],
     items: 3,
     isExpanded: false,
+    uuid: "",
     message: "",
     detect: {
       intent: "",
@@ -104,6 +106,9 @@ export default {
       message: ""
     }
   }),
+  created() {
+    this.uuid = uuid();
+  },
   methods: {
     expandAll() {
       this.expand = [...Array(this.items).keys()].map(_ => true);
@@ -115,15 +120,20 @@ export default {
     },
     sendMessageTest() {
       if (this.message != "")
-        Axios.get(API + "/proxy/message_test/" + this.message).then(
-          ({ data: { results } }) => {
-            console.log(results);
-            this.expandAll();
-            this.detect.intent =
-              results[0]["queryResult"]["intent"]["displayName"];
-            this.detect.message = results[0]["queryResult"]["fulfillmentText"];
+        Axios.get(API + `/hbot?message=${this.message}&uid=${this.uuid}`).then(
+          ({ data }) => {
+            console.log(data);
           }
         );
+      // Axios.get(API + "/proxy/message_test/" + this.message).then(
+      //   ({ data: { results } }) => {
+      //     console.log(results);
+      //     this.expandAll();
+      //     this.detect.intent =
+      //       results[0]["queryResult"]["intent"]["displayName"];
+      //     this.detect.message = results[0]["queryResult"]["fulfillmentText"];
+      //   }
+      // );
     }
   },
   watch: {

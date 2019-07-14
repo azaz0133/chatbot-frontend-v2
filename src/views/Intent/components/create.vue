@@ -1,10 +1,10 @@
 <template>
   <v-layout row wrap class="mt-3">
     <v-flex xs10 md10 lg10>
-      <v-text-field label="Intent name"></v-text-field>
+      <v-text-field v-model="displayName" label="Intent name"></v-text-field>
     </v-flex>
     <v-flex xs2 md2 lg2 class="mt-2 pl-2">
-      <v-btn color="primary" block>
+      <v-btn color="primary" block @click="handleSave">
         <v-icon>save</v-icon>Save
       </v-btn>
     </v-flex>
@@ -59,7 +59,7 @@
         </v-card-title>
         <v-card-text>
           <v-layout row wrap>
-            <v-flex xs12 md6 lg6 sm6 v-for="(item,i) in items" :key="i" class="pa-1">
+            <v-flex xs12 md3 lg3 sm3 v-for="(item,i) in items" :key="i" class="pa-1">
               <v-card color="blue" class="white--text">
                 <v-card-title class="title">Attribute</v-card-title>
                 <v-card-text>
@@ -84,7 +84,31 @@
             <v-icon>add</v-icon>
           </v-btn>
         </v-card-title>
-        <Rc :data="rc" v-for="(rc,i) in rcs" :key="i"></Rc>
+        <v-card-text v-for="(rc,i) in RCS" :key="i*100">
+          <v-layout row wrap>
+            <v-flex md12 lg12 xs12>
+              <v-layout row wrap>
+                <v-flex md3 lg3 xs3 v-for="(logic,i) in rc.logics.split(',')" :key="i * 100">
+                  <v-layout v-if="i == 0">
+                    <v-flex md6 lg6 xs6>
+                      <v-text-field :value="'IF'"></v-text-field>
+                    </v-flex>
+                    <v-flex md6 lg6 xs6>
+                      <v-text-field :value="logic"></v-text-field>
+                    </v-flex>
+                  </v-layout>
+                  <v-text-field v-else :value="logic"></v-text-field>
+                </v-flex>
+              </v-layout>
+            </v-flex>
+            <v-flex md6 lg6 xs12 class="pl-3">
+              <v-text-field :value="rc.type" label="type" disabled></v-text-field>
+              <v-text-field box label="response message or block id" disabled :value="rc.response"></v-text-field>
+            </v-flex>
+          </v-layout>
+          <div style="height:7px; background-color: darkturquoise;"></div>
+          <br />
+        </v-card-text>
       </v-card>
     </v-flex>
 
@@ -96,32 +120,45 @@
         </v-card-title>
         <v-card-text>
           <v-layout row wrap>
-            <v-flex md3 xs3 lg3 class="pr-3">
-              <v-autocomplete
-                v-model="rcForm.logic"
-                :items=" rcs.length == 0 ? ['IF'] : ['AND','OR']"
-                :value="rcs.length == 0 && 'IF'"
-              ></v-autocomplete>
+            <v-flex md12 lg12 xs12 v-for="i in countCodition" :key="i*2">
+              <v-layout row wrap>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    label="Condition"
+                    v-model="rcForm[i - 1].logic"
+                    :items=" i == 1 ? ['IF'] : ['AND','OR']"
+                    :value="i == 1 && 'IF'"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    :items="attributes"
+                    label="Attribute"
+                    v-model="rcForm[i - 1].attribute"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    :items="['IS','IS NOT','<','>']"
+                    v-model="rcForm[i - 1].operation"
+                    label="Operator"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-text-field label="Choice" v-model="rcForm[i - 1].choice"></v-text-field>
+                </v-flex>
+              </v-layout>
             </v-flex>
-            <v-flex md3 xs3 lg3 class="pr-3">
-              <v-text-field label="Attribute" v-model="rcForm.attribute"></v-text-field>
-            </v-flex>
-            <v-flex md3 xs3 lg3 class="pr-3">
-              <v-autocomplete
-                :items="['IS','IS NOT','<','>']"
-                v-model="rcForm.operation"
-                label="Operator"
-              ></v-autocomplete>
-            </v-flex>
-            <v-flex md3 xs3 lg3 class="pr-3">
-              <v-text-field label="Choice" v-model="rcForm.choice"></v-text-field>
+            <v-flex md12 lg12 xs12>
+              <v-spacer></v-spacer>
+              <v-icon color="green" class="click" @click="addSubCondition">add</v-icon>
             </v-flex>
             <v-flex md3 lg3 xs3>
-              <v-autocomplete :items="['text','block']" v-model="rcForm.type"></v-autocomplete>
+              <v-autocomplete :items="['text','block']" v-model="type"></v-autocomplete>
             </v-flex>
             <v-flex md1 lg1 xs1></v-flex>
             <v-flex md8 lg8 xs8>
-              <v-textarea box label="Response message or Block" v-model="rcForm.message"></v-textarea>
+              <v-textarea box label="Response message or Block" v-model="message"></v-textarea>
             </v-flex>
           </v-layout>
         </v-card-text>
@@ -156,6 +193,7 @@
 
 <script>
 import Axios from "axios";
+import uuid from "uuid/v4";
 import { API } from "../../../constant";
 import Rc from "./rc";
 export default {
@@ -168,61 +206,159 @@ export default {
     attribute: "",
     value: "",
     dialog: false,
+    bundleAttr: {
+      attributes: [],
+      values: []
+    },
+    countCodition: 1,
     phraseText: "",
     attributes: [],
+    displayName: "",
     values: [],
     message: "",
+    logics: "",
     typeMessage: "",
     items: [],
-    rcForm: {
-      logic: "",
-      operation: "",
-      attribute: "",
-      choice: "",
-      type: "",
-      message: ""
-    },
+    rcForm: [
+      {
+        logic: "",
+        operation: "",
+        attribute: "",
+        choice: ""
+      }
+    ],
+    type: "",
+    message: "",
+    attrs: [],
+    choices: [],
     rcs: []
   }),
   methods: {
+    handleSave() {
+      const intentId = uuid();
+      if (confirm("Did you type all input ?")) {
+        if (true)
+          Axios.post(API + "/proxy/df/create/intent", {
+            trainingPhrases: this.phraseTexts.map(phraseText => ({
+              type: "EXAMPLE",
+              parts: [
+                {
+                  text: phraseText
+                }
+              ]
+            })),
+            displayName: this.displayName
+          })
+            .then(({ data }) => {
+              Axios.post(API + "/proxy/fs/add", {
+                collection: "IntentDetail",
+                data: {
+                  attributes: this.items,
+                  responseCodition: this.rcs,
+                  intent: this.displayName
+                }
+              }).then(({ data }) => {
+                console.log(data);
+              });
+            })
+            .catch(err => {
+              console.log(err.response.data);
+            });
+        console.log({
+          attributes: this.items,
+          responseCodition: this.rcs,
+          intent: this.displayName
+        });
+      }
+    },
     addAttribute() {
       this.items.push({
         value: this.value,
         attribute: this.attribute
       });
-      // Axios.post(API + "/proxy/fs/add").then(({ data: { data } }) => {
-
-      // });
       this.attribute = "";
       this.value = "";
       this.dialog = false;
     },
     addCondition() {
+      console.log(this.countCodition);
+      if (this.countCodition == 1) {
+        this.logics =
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          this.rcForm[this.countCodition - 1].choice;
+      }
       if (
-        this.rcForm.logic == "" ||
-        this.rcForm.operation == "" ||
-        this.rcForm.choice == "" ||
-        this.rcForm.attribute == "" ||
-        this.rcForm.type == "" ||
-        this.rcForm.message == ""
+        this.countCodition != 1 &&
+        (this.rcForm[this.countCodition - 1].logic != "" ||
+          this.rcForm[this.countCodition - 1].operation != "" ||
+          this.rcForm[this.countCodition - 1].choice != "" ||
+          this.rcForm[this.countCodition - 1].attribute != "")
+      ) {
+        this.logics +=
+          "," +
+          this.rcForm[this.countCodition - 1].logic +
+          "," +
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          this.rcForm[this.countCodition - 1].choice;
+      }
+      this.rcs.push({
+        response: this.message,
+        type: this.type,
+        logics: this.logics
+      });
+      this.type = "";
+      this.message = "";
+      this.rcForm = [
+        {
+          logic: "",
+          operation: "",
+          attribute: "",
+          choice: ""
+        }
+      ];
+      this.countCodition = 1;
+      this.dialogRc = false;
+      console.log(this.rcs);
+    },
+    addSubCondition() {
+      if (
+        this.rcForm[this.countCodition - 1].logic == "" ||
+        this.rcForm[this.countCodition - 1].operation == "" ||
+        this.rcForm[this.countCodition - 1].choice == "" ||
+        this.rcForm[this.countCodition - 1].attribute == ""
       ) {
         return alert("Wrong input");
       }
-      this.rcs.push({
-        logic: this.rcForm.logic,
-        operator: this.rcForm.operation,
-        choice: this.rcForm.choice,
-        attribute: this.rcForm.attribute,
-        type: this.rcForm.type,
-        message: this.rcForm.message
-      });
-      this.rcForm.logic = "";
-      this.rcForm.operation = "";
-      this.rcForm.choice = "";
-      this.rcForm.attribute = "";
-      this.rcForm.type = "";
-      this.rcForm.message = "";
-      this.dialogRc = false;
+      if (this.countCodition == 1) {
+        this.logics =
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          this.rcForm[this.countCodition - 1].choice;
+      } else {
+        this.logics +=
+          "," +
+          this.rcForm[this.countCodition - 1].logic +
+          "," +
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          this.rcForm[this.countCodition - 1].choice;
+      }
+      this.rcForm[++this.countCodition - 1] = {
+        logic: "",
+        operation: "",
+        attribute: "",
+        choice: ""
+      };
     },
     handlePhrase() {
       this.phraseTexts.push(this.phraseText);
@@ -252,8 +388,16 @@ export default {
       ({ data: { data } }) => {
         this.attributes = data.map(d => d["attribute"]);
         this.values = data.map(d => d["value"]);
+        this.bundleAttr.attributes = this.attributes;
+        this.bundleAttr.values = this.values;
       }
     );
+  },
+  computed: {
+    RCS() {
+      console.log("asdqeeqqwe");
+      return this.rcs;
+    }
   }
 };
 </script>

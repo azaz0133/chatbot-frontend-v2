@@ -64,6 +64,10 @@ export default {
   line-height: 1.5;
 }
 
+body {
+  height: 2000px
+}
+
 .center_div {
   position: absolute;
   top: 50%;
