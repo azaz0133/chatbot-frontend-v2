@@ -212,44 +212,45 @@ export default {
     ],
     type: "",
     message: "",
+    attributesSelected: [],
     attrs: [],
     choices: [],
-    rcs: []
+    rcs: [],
+    attrChoice: []
   }),
   methods: {
     handleSave() {
       const intentId = uuid();
       if (confirm("Did you type all input ?")) {
-        if (true)
-        this.loading = true;
-          Axios.post(API + "/proxy/df/create/intent", {
-            trainingPhrases: this.phraseTexts.map(phraseText => ({
-              type: "EXAMPLE",
-              parts: [
-                {
-                  text: phraseText
-                }
-              ]
-            })),
-            displayName: this.displayName
-          })
-            .then(({ data }) => {
-              Axios.post(API + "/proxy/fs/add", {
-                collection: "IntentDetail",
-                data: {
-                  attributes: this.items,
-                  responseCodition: this.rcs,
-                  intent: this.displayName
-                }
-              }).then(({ data }) => {
-                console.log(data);
-                this.loading = false;
-                window.location.reload()
-              });
-            })
-            .catch(err => {
-              console.log(err.response.data);
+        if (true) this.loading = true;
+        Axios.post(API + "/proxy/df/create/intent", {
+          trainingPhrases: this.phraseTexts.map(phraseText => ({
+            type: "EXAMPLE",
+            parts: [
+              {
+                text: phraseText
+              }
+            ]
+          })),
+          displayName: this.displayName
+        })
+          .then(({ data }) => {
+            Axios.post(API + "/proxy/fs/add", {
+              collection: "IntentDetail",
+              data: {
+                attributes: this.items,
+                responseCodition: this.rcs,
+                intent: this.displayName
+              }
+            }).then(({ data }) => {
+              console.log(data);
+              this.loading = false;
+              window.location.reload();
             });
+          })
+          .catch(err => {
+            console.log(err.response.data);
+          });
         console.log({
           attributes: this.items,
           responseCodition: this.rcs,
@@ -285,6 +286,15 @@ export default {
           this.rcForm[this.countCodition - 1].choice != "" ||
           this.rcForm[this.countCodition - 1].attribute != "")
       ) {
+        if (
+          this.attributesSelected.includes(
+            this.rcForm[this.countCodition - 1].attribute
+          )
+        ) {
+          return alert(
+            `${this.rcForm[this.countCodition - 1].attribute} has been selected`
+          );
+        }
         this.logics +=
           "," +
           this.rcForm[this.countCodition - 1].logic +
@@ -314,7 +324,11 @@ export default {
       ];
       this.countCodition = 1;
       this.dialogRc = false;
-      console.log(this.rcs);
+      this.attributesSelected = [];
+    },
+    getAttributes() {
+      this.r;
+      return this.attributes;
     },
     addSubCondition() {
       if (
@@ -325,6 +339,7 @@ export default {
       ) {
         return alert("Wrong input");
       }
+
       if (this.countCodition == 1) {
         this.logics =
           this.rcForm[this.countCodition - 1].attribute +
@@ -335,6 +350,15 @@ export default {
           this.rcForm[this.countCodition - 1].choice +
           '"';
       } else {
+        if (
+          this.attributesSelected.includes(
+            this.rcForm[this.countCodition - 1].attribute
+          )
+        ) {
+          return alert(
+            `${this.rcForm[this.countCodition - 1].attribute} has been selected`
+          );
+        }
         this.logics +=
           "," +
           this.rcForm[this.countCodition - 1].logic +
@@ -347,6 +371,9 @@ export default {
           this.rcForm[this.countCodition - 1].choice +
           '"';
       }
+      this.attributesSelected.push(
+        this.rcForm[this.countCodition - 1].attribute
+      );
       this.rcForm[++this.countCodition - 1] = {
         logic: "",
         operation: "",
@@ -374,11 +401,21 @@ export default {
       this.bundleAttr.values = this.valueAttrs
         .filter(a => a["attribute"] == val)[0]
         ["value"].split(",");
+    },
+    rcForm: function(val) {
+      console.log(val);
     }
   },
   computed: {
     RCS() {
       return this.rcs;
+    },
+    attributesAC() {
+      return this.attributes.map(a => {
+        if (!this.attributesSelected.includes(a)) {
+          return a;
+        }
+      });
     }
   }
 };
