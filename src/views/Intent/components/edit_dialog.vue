@@ -24,7 +24,7 @@
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" flat @click="editIntentMethod" v-if="!isLoading">I accept</v-btn>
+          <v-btn color="primary" @click="editIntentMethod" v-if="!isLoading">I accept</v-btn>
           <div v-else class="lds-hourglass"></div>
         </v-card-actions>
       </v-card>
@@ -56,10 +56,12 @@ export default {
   data: () => ({
     editIntent: {},
     isAdd: false,
+    dialogRc: false,
     newTrain: "",
     isLoading: false
   }),
   updated() {
+    console.log(this.editIntent);
     this.editIntent = this.intent;
   },
   destroyed() {

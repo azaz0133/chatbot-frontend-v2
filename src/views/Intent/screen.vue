@@ -62,13 +62,24 @@ export default {
       const {
         data: { data }
       } = await Axios.get(API + "/proxy/get/intents");
-      console.log(data);
       this.isLoadingIntent = false;
       this.intents = data;
     },
     async openUpdateIntent(intent) {
-      this.intent = intent;
-      this.openDialog = true;
+      this.isLoadingIntent = true
+      const res = await Axios.get(
+        API + "/proxy/fs/document?collection=IntentDetail"
+      );
+      res.data.data.forEach(d => {
+        if (intent["displayName"] == d.intent) {
+          this.intent = {
+            ...intent,
+            ...d
+          };
+          this.isLoadingIntent = false;
+          this.openDialog = true;
+        }
+      });
     },
     handleEditDialog(open) {
       this.openDialog = open;

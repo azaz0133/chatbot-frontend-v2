@@ -13,76 +13,47 @@
       </v-flex>
       <v-flex md3 xs3 lg3 column class="pt-3">
         <v-btn @click="sendMessageTest" color="primary" style="display: inline-block;">
-          <v-icon>search</v-icon>Test
+          <v-icon>send</v-icon>send
         </v-btn>
       </v-flex>
-      <v-flex md12 xs12 lg12>
-        <v-card class="ma-3" color="cyan lighten-5">
-          <v-divider color="grey"></v-divider>
-          <v-card-text>
-            <v-expansion-panel expand v-model="expand">
-              <v-expansion-panel-content>
-                <template v-slot:header>
-                  <div class="headline">Detected</div>
-                </template>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Intent</v-card-title>
-                  <v-card-text>
-                    <h4 class="sub-title success--text">{{detect.intent}}</h4>
-                  </v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Entity</v-card-title>
-                  <v-card-text></v-card-text>
-                </v-card>
-              </v-expansion-panel-content>
-              <v-divider color="white"></v-divider>
-              <v-expansion-panel-content>
-                <template v-slot:header>
-                  <div class="headline">All In Memories</div>
-                </template>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Entity</v-card-title>
-                  <v-card-text></v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Entity</v-card-title>
-                  <v-card-text></v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-              </v-expansion-panel-content>
-              <v-divider color="white"></v-divider>
-              <v-expansion-panel-content>
-                <template v-slot:header>
-                  <div class="headline">Response</div>
-                </template>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Response Text</v-card-title>
-                  <v-card-text>
-                    <v-card-text>
-                      <h4 class="sub-title success--text">{{detect.message}}</h4>
-                    </v-card-text>
-                  </v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Type</v-card-title>
-                  <v-card-text></v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-                <v-card>
-                  <v-card-title class="title light-blue--text darken-2--text">Return</v-card-title>
-                  <v-card-text></v-card-text>
-                </v-card>
-                <v-divider color="white" inset></v-divider>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-card-text>
-        </v-card>
-      </v-flex>
-      <v-btn v-if="isExpanded" color="red" class="black--text" @click="closeExpandAll">close</v-btn>
+      Session talk : {{uuid}}
+      <div class="lds-hourglass" v-if="loading"></div>
+      <template v-else>
+        <v-flex md12 lg12 xs12>
+          <v-card class="ma-3">
+            <v-card-title class="headline primary--text">Intent Detected</v-card-title>
+            <v-card-text>
+              <h5 class="title blue--text">{{intent}}</h5>
+            </v-card-text>
+          </v-card>
+        </v-flex>
+        <v-flex md12 lg12 xs12>
+          <v-card class="ma-3">
+            <v-card-title class="headline primary--text">Response Message</v-card-title>
+            <v-card-text>
+              <h5 class="title blue--text">{{responseMessage}}</h5>
+            </v-card-text>
+          </v-card>
+        </v-flex>
+        <v-flex md12 lg12 xs12>
+          <v-card class="ma-3">
+            <v-card-title class="headline primary--text">Memories</v-card-title>
+            <v-card-text v-if="intents.length != 0">
+              <h4 class="title green-text">Attributes And Choice</h4>
+              <ol>
+                <li
+                  v-for="(attr,i) in attributes"
+                  :key="i*3"
+                >{{"attribute = " +attr.attribute + " value = " + attr.value}}</li>
+              </ol>
+              <h4 class="title brown--text">Intent</h4>
+              <ol>
+                <li v-for="(int ,i ) in intents" :key="i*5">{{int}}</li>
+              </ol>
+            </v-card-text>
+          </v-card>
+        </v-flex>
+      </template>
     </v-layout>
   </v-navigation-drawer>
 </template>
@@ -95,11 +66,13 @@ export default {
   components: {},
   data: () => ({
     drawer: true,
-    expand: [],
-    items: 3,
-    isExpanded: false,
     uuid: "",
     message: "",
+    responseMessage: "",
+    attributes: [],
+    intents: [],
+    loading:false,
+    intent: "",
     detect: {
       intent: "",
       entity: "",
@@ -110,21 +83,19 @@ export default {
     this.uuid = uuid();
   },
   methods: {
-    expandAll() {
-      this.expand = [...Array(this.items).keys()].map(_ => true);
-      this.isExpanded = true;
-    },
-    closeExpandAll() {
-      this.expand = [...Array(this.items).keys()].map(_ => false);
-      this.isExpanded = false;
-    },
     sendMessageTest() {
       if (this.message != "")
-        Axios.get(API + `/hbot?message=${this.message}&uid=${this.uuid}`).then(
-          ({ data }) => {
-            console.log(data);
-          }
-        );
+      this.loading = true
+        Axios.get(
+          API + `/hbot/test?message=${this.message}&uid=${this.uuid}`
+        ).then(({ data }) => {
+          console.log(data);
+          this.loading = false
+          this.intent = data.intentDetectNow;
+          this.responseMessage = data.responseMessage;
+          this.intents = data.memories.intents;
+          this.attributes = data.memories.attributes;
+        });
       // Axios.get(API + "/proxy/message_test/" + this.message).then(
       //   ({ data: { results } }) => {
       //     console.log(results);
@@ -134,11 +105,6 @@ export default {
       //     this.detect.message = results[0]["queryResult"]["fulfillmentText"];
       //   }
       // );
-    }
-  },
-  watch: {
-    message: function(old, New) {
-      this.closeExpandAll();
     }
   }
 };

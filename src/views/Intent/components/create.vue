@@ -1,5 +1,8 @@
 <template>
-  <v-layout row wrap class="mt-3">
+  <div class="div_center" v-if="loading">
+    <div class="lds-hourglass"></div>
+  </div>
+  <v-layout row wrap class="mt-3" v-else>
     <v-flex xs10 md10 lg10>
       <v-text-field v-model="displayName" label="Intent name"></v-text-field>
     </v-flex>
@@ -84,30 +87,8 @@
             <v-icon>add</v-icon>
           </v-btn>
         </v-card-title>
-        <v-card-text v-for="(rc,i) in RCS" :key="i*100">
-          <v-layout row wrap>
-            <v-flex md12 lg12 xs12>
-              <v-layout row wrap>
-                <v-flex md3 lg3 xs3 v-for="(logic,i) in rc.logics.split(',')" :key="i * 100">
-                  <v-layout v-if="i == 0">
-                    <v-flex md6 lg6 xs6>
-                      <v-text-field :value="'IF'"></v-text-field>
-                    </v-flex>
-                    <v-flex md6 lg6 xs6>
-                      <v-text-field :value="logic"></v-text-field>
-                    </v-flex>
-                  </v-layout>
-                  <v-text-field v-else :value="logic"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-flex>
-            <v-flex md6 lg6 xs12 class="pl-3">
-              <v-text-field :value="rc.type" label="type" disabled></v-text-field>
-              <v-text-field box label="response message or block id" disabled :value="rc.response"></v-text-field>
-            </v-flex>
-          </v-layout>
-          <div style="height:7px; background-color: darkturquoise;"></div>
-          <br />
+        <v-card-text>
+          <Rc class="pa-3" v-for="(rc,i) in rcs" :dataRc="rcs[i]" :key="i*100"></Rc>
         </v-card-text>
       </v-card>
     </v-flex>
@@ -178,8 +159,8 @@
         </div>-->
         <!-- </v-card-text> -->
         <v-card-text>
-          <v-text-field v-model="attribute" label="attribute"></v-text-field>
-          <v-text-field v-model="value" label="value"></v-text-field>
+          <v-autocomplete :items="bundleAttr.attributes" v-model="attribute" label="attribute"></v-autocomplete>
+          <v-autocomplete :items="this.bundleAttr.values" v-model="value" label="value"></v-autocomplete>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -202,6 +183,7 @@ export default {
   },
   data: () => ({
     phraseTexts: [],
+    loading: false,
     dialogRc: false,
     attribute: "",
     value: "",
@@ -210,6 +192,7 @@ export default {
       attributes: [],
       values: []
     },
+    valueAttrs: [],
     countCodition: 1,
     phraseText: "",
     attributes: [],
@@ -238,6 +221,7 @@ export default {
       const intentId = uuid();
       if (confirm("Did you type all input ?")) {
         if (true)
+        this.loading = true;
           Axios.post(API + "/proxy/df/create/intent", {
             trainingPhrases: this.phraseTexts.map(phraseText => ({
               type: "EXAMPLE",
@@ -259,6 +243,8 @@ export default {
                 }
               }).then(({ data }) => {
                 console.log(data);
+                this.loading = false;
+                window.location.reload()
               });
             })
             .catch(err => {
@@ -288,7 +274,9 @@ export default {
           "," +
           this.rcForm[this.countCodition - 1].operation +
           "," +
-          this.rcForm[this.countCodition - 1].choice;
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
       }
       if (
         this.countCodition != 1 &&
@@ -305,7 +293,9 @@ export default {
           "," +
           this.rcForm[this.countCodition - 1].operation +
           "," +
-          this.rcForm[this.countCodition - 1].choice;
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
       }
       this.rcs.push({
         response: this.message,
@@ -341,7 +331,9 @@ export default {
           "," +
           this.rcForm[this.countCodition - 1].operation +
           "," +
-          this.rcForm[this.countCodition - 1].choice;
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
       } else {
         this.logics +=
           "," +
@@ -351,7 +343,9 @@ export default {
           "," +
           this.rcForm[this.countCodition - 1].operation +
           "," +
-          this.rcForm[this.countCodition - 1].choice;
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
       }
       this.rcForm[++this.countCodition - 1] = {
         logic: "",
@@ -363,39 +357,27 @@ export default {
     handlePhrase() {
       this.phraseTexts.push(this.phraseText);
       this.phraseText = "";
-    },
-    async autocompleteValues(displayName) {
-      try {
-        const {
-          data: { data },
-          status
-        } = await Axios.get(API + "/proxy/df/get/entities");
-        if (status != 200) {
-          console.log("fail");
-        } else {
-          this.aValue = data
-            .filter(d => d["displayName"] == displayName)[0]
-            ["entities"].map(v => v["value"]);
-        }
-        console.log(this.aValue);
-      } catch (error) {
-        console.log(error.message);
-      }
     }
   },
   created() {
     Axios.get(API + "/proxy/fs/document?collection=Attribute").then(
       ({ data: { data } }) => {
         this.attributes = data.map(d => d["attribute"]);
-        this.values = data.map(d => d["value"]);
         this.bundleAttr.attributes = this.attributes;
-        this.bundleAttr.values = this.values;
+        this.valueAttrs = data;
+        this.bundleAttr.values = [];
       }
     );
   },
+  watch: {
+    attribute: function(val) {
+      this.bundleAttr.values = this.valueAttrs
+        .filter(a => a["attribute"] == val)[0]
+        ["value"].split(",");
+    }
+  },
   computed: {
     RCS() {
-      console.log("asdqeeqqwe");
       return this.rcs;
     }
   }

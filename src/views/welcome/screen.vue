@@ -68,7 +68,7 @@ export default {
               group: "foo",
               title: "Welcome Back",
               type: "success",
-              text: "latest update 12/july/2019 17.00"
+              text: "Update At 17/july/2019 22.00\n"
             });
             const token = data["token"];
             this.note = "Login successful";

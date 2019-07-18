@@ -92,7 +92,7 @@ body {
   margin: 6px;
   box-sizing: border-box;
   border: 26px solid #cef;
-  border-color: #cef transparent #cef transparent;
+  border-color: rgb(189, 99, 15) transparent #cef transparent;
   animation: lds-hourglass 1.2s infinite;
 }
 @keyframes lds-hourglass {
