@@ -66,7 +66,7 @@ export default {
       this.intents = data;
     },
     async openUpdateIntent(intent) {
-      this.isLoadingIntent = true
+      this.isLoadingIntent = true;
       const res = await Axios.get(
         API + "/proxy/fs/document?collection=IntentDetail"
       );
@@ -98,6 +98,15 @@ export default {
     async updateIntent(intent) {
       const { data } = await Axios.post(API + "/proxy/df/update/intent", {
         ...intent
+      });
+      const res = await Axios.post(API + "/proxy/fs/update", {
+        collection: "IntentDetail",
+        document: intent["id"],
+        data: {
+          attributes: intent["attributes"],
+          intent: intent["intent"],
+          responseCodition: intent["responseCodition"]
+        }
       });
       this.openDialog = false;
       console.log(data);

@@ -11,6 +11,7 @@
         </v-flex>
         <v-flex md6 lg6 xs12 class="pl-3">
           <v-text-field :value="dataRc.type" label="type" disabled></v-text-field>
+          <v-switch disabled :value="dataRc.stopIntent" :label="'Stop Intent'"></v-switch>
           <v-text-field box label="response message or block id" disabled :value="dataRc.response"></v-text-field>
         </v-flex>
       </v-layout>

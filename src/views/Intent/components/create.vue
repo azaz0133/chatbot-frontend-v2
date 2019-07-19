@@ -11,10 +11,10 @@
         <v-icon>save</v-icon>Save
       </v-btn>
     </v-flex>
-    <v-flex md12 lg12 xs12 class="mb-3">
-      <v-card>
-        <v-card-text>
-          <v-layout row wrap>
+    <!-- <v-flex md12 lg12 xs12 class="mb-3"> -->
+      <!-- <v-card> -->
+        <!-- <v-card-text> -->
+          <!-- <v-layout row wrap>
             <v-flex md10 lg10 xs10>
               <v-text-field label="Context"></v-text-field>
             </v-flex>
@@ -23,10 +23,10 @@
                 <v-icon>add</v-icon>
               </v-btn>
             </v-flex>
-          </v-layout>
-        </v-card-text>
-      </v-card>
-    </v-flex>
+          </v-layout> -->
+        <!-- </v-card-text> -->
+      <!-- </v-card> -->
+    <!-- </v-flex> -->
     <v-flex md12 lg12 xs12 class>
       <v-card>
         <v-layout row wrap class="pa-2">
@@ -114,8 +114,11 @@
                 <v-flex md3 xs3 lg3 class="pr-3">
                   <v-autocomplete
                     :items="attributes"
+                    :rules="rules"
+                    :item-disabled="attributesSelected"
                     label="Attribute"
-                    v-model="rcForm[i - 1].attribute"
+                    v-on:change="handleAttrValueAC"
+                    v-model="rcForm[i -1 ].attribute"
                   ></v-autocomplete>
                 </v-flex>
                 <v-flex md3 xs3 lg3 class="pr-3">
@@ -126,7 +129,11 @@
                   ></v-autocomplete>
                 </v-flex>
                 <v-flex md3 xs3 lg3 class="pr-3">
-                  <v-text-field label="Choice" v-model="rcForm[i - 1].choice"></v-text-field>
+                  <v-autocomplete
+                    :items="ATTRCHOICE[i - 1]"
+                    label="Choice"
+                    v-model="rcForm[i - 1].choice"
+                  ></v-autocomplete>
                 </v-flex>
               </v-layout>
             </v-flex>
@@ -135,7 +142,8 @@
               <v-icon color="green" class="click" @click="addSubCondition">add</v-icon>
             </v-flex>
             <v-flex md3 lg3 xs3>
-              <v-autocomplete :items="['text','block']" v-model="type"></v-autocomplete>
+              <v-autocomplete :items="['text','block']" label="Type" v-model="type"></v-autocomplete>
+              <v-switch v-model="stopIntent" :label="`Stop Intent`"></v-switch>
             </v-flex>
             <v-flex md1 lg1 xs1></v-flex>
             <v-flex md8 lg8 xs8>
@@ -187,6 +195,7 @@ export default {
     dialogRc: false,
     attribute: "",
     value: "",
+    stopIntent: false,
     dialog: false,
     bundleAttr: {
       attributes: [],
@@ -211,14 +220,24 @@ export default {
       }
     ],
     type: "",
+    stopIntent: false,
     message: "",
     attributesSelected: [],
     attrs: [],
     choices: [],
     rcs: [],
-    attrChoice: []
+    selectedAttr: "",
+    attrChoice: [[],[],[],[]]
   }),
   methods: {
+    handleAttrValueAC(attr) {
+      this.valueAttrs.forEach((a, i) => {
+        if (a.attribute == attr) {
+          this.attrChoice[this.countCodition - 1] = a.value.split(",");
+        }
+      });
+      this.$forceUpdate()
+    },
     handleSave() {
       const intentId = uuid();
       if (confirm("Did you type all input ?")) {
@@ -251,11 +270,6 @@ export default {
           .catch(err => {
             console.log(err.response.data);
           });
-        console.log({
-          attributes: this.items,
-          responseCodition: this.rcs,
-          intent: this.displayName
-        });
       }
     },
     addAttribute() {
@@ -268,7 +282,9 @@ export default {
       this.dialog = false;
     },
     addCondition() {
-      console.log(this.countCodition);
+      if(this.type == "" || this.message == "") {
+        return alert("Wrong input type and message is not empty")
+      }
       if (this.countCodition == 1) {
         this.logics =
           this.rcForm[this.countCodition - 1].attribute +
@@ -310,7 +326,8 @@ export default {
       this.rcs.push({
         response: this.message,
         type: this.type,
-        logics: this.logics
+        logics: this.logics,
+        stopIntent: this.stopIntent
       });
       this.type = "";
       this.message = "";
@@ -397,13 +414,14 @@ export default {
     );
   },
   watch: {
+    selectedAttr(o, n) {
+      this.rcForm[this.countCodition - 1].attribute = n;
+      this.selectedAttr = "";
+    },
     attribute: function(val) {
       this.bundleAttr.values = this.valueAttrs
         .filter(a => a["attribute"] == val)[0]
         ["value"].split(",");
-    },
-    rcForm: function(val) {
-      console.log(val);
     }
   },
   computed: {
@@ -416,6 +434,18 @@ export default {
           return a;
         }
       });
+    },
+    ATTRCHOICE() {
+      return this.attrChoice;
+    },
+    rules() {
+      return [
+        val => {
+          return (
+            !this.attributesSelected.includes(val) || `${val} has been selected`
+          );
+        }
+      ];
     }
   }
 };
