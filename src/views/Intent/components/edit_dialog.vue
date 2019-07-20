@@ -86,8 +86,8 @@
               <h4 class="subtitle">Response Condition</h4>
             </v-flex>
             <v-flex md2 xs2 lg2>
-              <v-btn color="success">
-                <v-icon>add</v-icon>Response
+              <v-btn color="success" @click="rcDialog = true;">
+                <v-icon class="click">add</v-icon>Response
               </v-btn>
             </v-flex>
             <v-flex
@@ -125,6 +125,8 @@
                             hide-selected
                             label="Attribute"
                             color="white"
+                            @change="test(conditions[i],i)"
+                            :rules="[v => !attrThatSelected[i].includes(v) || `${v} has been selected`]"
                             v-model="l['attribute']"
                           ></v-autocomplete>
                         </v-flex>
@@ -147,51 +149,67 @@
                         </v-flex>
                       </v-layout>
                     </v-flex>
+                    <!-- ADD SECTION -->
                     <v-flex md12 xs12 lg12 v-if="addL[i]">
                       <v-layout row wrap>
                         <v-flex class="pa-1" md3 xs3 lg3>
                           <v-autocomplete
-                            color="white"
+                            background-color="white"
+                            color="yellow"
                             hide-selected
                             label="Logic"
-                            v-model="lol['logic']"
+                            v-model="lol[i]['logic']"
                             :items="['AND','OR']"
                           ></v-autocomplete>
                         </v-flex>
                         <v-flex class="pa-1" md3 xs3 lg3>
                           <v-autocomplete
-                            color="white"
+                            background-color="white"
+                            color="yellow"
                             hide-selected
                             :items="attrs"
-                            v-model="lol['attribute']"
+                            @change="test(conditions[i],i)"
+                            :rules="[v => !attrThatSelected[i].includes(v) || `${v} has been selected`]"
+                            v-model="lol[i]['attribute']"
                             label="Attribute"
                           ></v-autocomplete>
                         </v-flex>
                         <v-flex class="pa-1" md3 xs3 lg3>
                           <v-autocomplete
-                            color="white"
+                            background-color="white"
+                            color="yellow"
                             hide-selected
                             label="Condition"
-                            v-model="lol['condition']"
+                            v-model="lol[i]['condition']"
                             :items="['>','<','IS NOT','IS']"
                           ></v-autocomplete>
                         </v-flex>
                         <v-flex class="pa-1" md3 xs3 lg3>
                           <v-autocomplete
-                            color="white"
+                            background-color="white"
+                            color="yellow"
                             hide-selected
                             label="value"
-                            v-model="lol['value']"
-                            :items="attrVals[lol['attribute']]"
+                            v-model="lol[i]['value']"
+                            :items="attrVals[lol[i]['attribute']]"
                           ></v-autocomplete>
                         </v-flex>
                       </v-layout>
                     </v-flex>
                     <v-flex md12 xs12 lg12>
+                      <v-icon class="click" @click="handleDeleCon(i)" color="red">remove</v-icon>
+                    </v-flex>
+                    <v-flex md12 xs12 lg12>
                       <v-icon class="click" @click="handleAddLogics(i)" color="success">add</v-icon>
                     </v-flex>
                     <v-flex md6 lg6 xs6 class="pa-2">
-                      <v-text-field label="type" color="white" v-model="rc['type']"></v-text-field>
+                      <v-autocomplete
+                        :items="['text','block']"
+                        hide-selected
+                        label="type"
+                        color="white"
+                        v-model="rc['type']"
+                      ></v-autocomplete>
                       <v-switch v-model="rc['stopIntent']" label="Stop Intent"></v-switch>
                     </v-flex>
                     <v-flex md6 lg6 xs6 class="pa-2">
@@ -213,6 +231,7 @@
     </v-dialog>
 
     <!-- DIALOG -->
+
     <v-dialog v-model="attrDialog" width="300">
       <v-card>
         <v-card-title class="headline">Add Attribute</v-card-title>
@@ -226,15 +245,68 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="rcDialog" width="500">
+
+    <v-dialog v-model="rcDialog" max-width="450">
       <v-card>
-        <v-card-title class="headline">Add Response Condition</v-card-title>
-        <v-card-text></v-card-text>
+        <v-card-title>
+          <h3 class="headline">Add Response</h3>
+        </v-card-title>
+        <v-card-text>
+          <v-layout row wrap>
+            <v-flex md12 lg12 xs12 v-for="i in countCodition" :key="i*2 + 6">
+              <v-layout row wrap>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    label="Condition"
+                    v-model="rcForm[i - 1].logic"
+                    :items=" i == 1 ? ['IF'] : ['AND','OR']"
+                    :value="i == 1 && 'IF'"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    :items="attrs"
+                    :rules="[v => !attributesSelected.includes(v) || `${v} has been selected`]"
+                    :item-disabled="attributesSelected"
+                    label="Attribute"
+                    v-on:change="handleAttrValueAC"
+                    v-model="rcForm[i -1 ].attribute"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    :items="['IS','IS NOT','<','>']"
+                    v-model="rcForm[i - 1].operation"
+                    label="Operator"
+                  ></v-autocomplete>
+                </v-flex>
+                <v-flex md3 xs3 lg3 class="pr-3">
+                  <v-autocomplete
+                    :items="ATTRCHOICE[i - 1]"
+                    label="Choice"
+                    v-model="rcForm[i - 1].choice"
+                  ></v-autocomplete>
+                </v-flex>
+              </v-layout>
+            </v-flex>
+            <v-flex md12 lg12 xs12>
+              <v-spacer></v-spacer>
+              <v-icon color="green" class="click" @click="addSubCondition">add</v-icon>
+            </v-flex>
+            <v-flex md3 lg3 xs3>
+              <v-autocomplete :items="['text','block']" label="Type" v-model="type"></v-autocomplete>
+              <v-switch v-model="stopIntent" :label="`Stop Intent`"></v-switch>
+            </v-flex>
+            <v-flex md1 lg1 xs1></v-flex>
+            <v-flex md8 lg8 xs8>
+              <v-textarea box label="Response message or Block" v-model="message"></v-textarea>
+            </v-flex>
+          </v-layout>
+        </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn>
-            <v-icon>add</v-icon>ADD
-          </v-btn>
+          <v-btn color="red darken-1" flat="flat" @click="rcDialog = false;">Cancel</v-btn>
+          <v-btn color="primary darken-1" @click="addCondition">Agree</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -265,21 +337,28 @@ export default {
   data: () => ({
     editIntent: {},
     dialogRc: false,
+    attributesSelected: [],
+    countCodition: 1,
     rcDialog: false,
+    rcForm: [
+      {
+        logic: "",
+        operation: "",
+        attribute: "",
+        choice: ""
+      }
+    ],
     attrDialog: false,
     conditions: [],
+    message: "",
+    type: "",
     newAttr: "",
     addL: [],
     values: [],
     newValue: "",
     newTrains: [""],
     isLoading: false,
-    lol: {
-      logic: "",
-      attribute: "",
-      condition: "",
-      value: ""
-    },
+    lol: [],
     t: "",
     attrItems: [],
     type: "",
@@ -289,7 +368,9 @@ export default {
     attrs: [],
     attrVals: {},
     attrChoice: [],
-    addLogic: []
+    addLogic: [],
+    attrThatSelected: [],
+    isAccept: false
   }),
   updated() {
     this.editIntent = this.intent;
@@ -312,6 +393,122 @@ export default {
     );
   },
   methods: {
+    addCondition() {
+      if (this.type == "" || this.message == "") {
+        return alert("Wrong input type and message is not empty");
+      }
+      if (this.countCodition == 1) {
+        this.logics =
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
+      }
+      if (
+        this.countCodition != 1 &&
+        (this.rcForm[this.countCodition - 1].logic != "" ||
+          this.rcForm[this.countCodition - 1].operation != "" ||
+          this.rcForm[this.countCodition - 1].choice != "" ||
+          this.rcForm[this.countCodition - 1].attribute != "")
+      ) {
+        if (
+          this.attributesSelected.includes(
+            this.rcForm[this.countCodition - 1].attribute
+          )
+        ) {
+          return alert(
+            `${this.rcForm[this.countCodition - 1].attribute} has been selected`
+          );
+        }
+        this.logics +=
+          "," +
+          this.rcForm[this.countCodition - 1].logic +
+          "," +
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
+      }
+      const cc = Object.create(this.editIntent);
+      cc["responseCodition"].push({
+        response: this.message,
+        type: this.type,
+        logics: this.logics,
+        stopIntent: this.stopIntent
+      });
+      this.editIntent = cc;
+      this.type = "";
+      this.message = "";
+      this.rcForm = [
+        {
+          logic: "",
+          operation: "",
+          attribute: "",
+          choice: ""
+        }
+      ];
+      this.countCodition = 1;
+      this.rcDialog = false;
+      this.attributesSelected = [];
+      // this.$forceUpdate()
+    },
+    addSubCondition() {
+      if (
+        this.rcForm[this.countCodition - 1].logic == "" ||
+        this.rcForm[this.countCodition - 1].operation == "" ||
+        this.rcForm[this.countCodition - 1].choice == "" ||
+        this.rcForm[this.countCodition - 1].attribute == ""
+      ) {
+        return alert("Wrong input");
+      }
+
+      if (this.countCodition == 1) {
+        this.logics =
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
+      } else {
+        if (
+          this.attributesSelected.includes(
+            this.rcForm[this.countCodition - 1].attribute
+          )
+        ) {
+          return alert(
+            `${this.rcForm[this.countCodition - 1].attribute} has been selected`
+          );
+        }
+        this.logics +=
+          "," +
+          this.rcForm[this.countCodition - 1].logic +
+          "," +
+          this.rcForm[this.countCodition - 1].attribute +
+          "," +
+          this.rcForm[this.countCodition - 1].operation +
+          "," +
+          '"' +
+          this.rcForm[this.countCodition - 1].choice +
+          '"';
+      }
+      this.attributesSelected.push(
+        this.rcForm[this.countCodition - 1].attribute
+      );
+      this.rcForm[++this.countCodition - 1] = {
+        logic: "",
+        operation: "",
+        attribute: "",
+        choice: ""
+      };
+    },
     handleAttrValueAC(attr, index) {
       this.attrItems.forEach((a, i) => {
         if (a.attribute == attr) {
@@ -320,31 +517,58 @@ export default {
       });
       this.$forceUpdate();
     },
+    test(a, i) {
+      this.attrThatSelected[i] = a.map(s => s["attribute"]);
+    },
+    handleDeleCon(index) {
+      const c = Object.create(this.editIntent);
+      let log = c["responseCodition"][index].logics.split(",");
+      for (let i = 0; i < 4; i++) {
+        log.pop();
+      }
+      c["responseCodition"][index].logics = "";
+      log.forEach(l => {
+        c["responseCodition"][index].logics += l + ",";
+      });
+      c["responseCodition"][index].logics = c["responseCodition"][
+        index
+      ].logics.substr(0, c["responseCodition"][index].logics.length - 1);
+
+      console.log(log.length);
+      this.editIntent = c;
+      console.log(c["responseCodition"][index]);
+      this.$forceUpdate();
+    },
     handleDeleteTraining(index) {
       this.editIntent["trainingPhrases"].splice(index, 1);
     },
     handleAddLogics(index) {
-      this.addL[index] = true
+      this.addL[index] = true;
+      this.attrThatSelected[index] = ["color"];
+      console.log("aaaa   " + this.attrThatSelected[index]);
+      this.$forceUpdate();
+      console.log(this.editIntent["responseCodition"][index]);
+      this.attrThatSelected[index] = this.editIntent["responseCodition"][index];
       if (this.addLogic[index].length == 0) {
       } else {
         let g = Object.create(this.editIntent);
         g["responseCodition"][index].logics +=
           "," +
-          this.lol["logic"] +
+          this.lol[index]["logic"] +
           "," +
-          this.lol["attribute"] +
+          this.lol[index]["attribute"] +
           "," +
-          this.lol["condition"] +
+          this.lol[index]["condition"] +
           "," +
-          this.lol["value"];
+          this.lol[index]["value"];
         this.editIntent = g;
-        console.log(this.editIntent["responseCodition"][index]);
-        this.lol = {
+        this.lol[index - 1] = {
           logic: "",
           attribute: "",
           condition: "",
           value: ""
         };
+        console.log(this.editIntent["responseCodition"][index]);
       }
       this.addLogic[index].push("");
     },
@@ -417,38 +641,62 @@ export default {
       this.t = "";
     },
     async editIntentMethod() {
-      // this.editIntent["responseCodition"] = this.destuctureLogic();
-      this.addLogic.forEach((a, i) => {
-        if (a.length == 1) {
-          this.editIntent["responseCodition"][index].logics +=
-            "," +
-            this.lol["logic"] +
-            "," +
-            this.lol["attribute"] +
-            "," +
-            this.lol["condition"] +
-            "," +
-            this.lol["value"];
+      this.lol.forEach(l => {
+        if (l.logic != "") {
+          return alert("You need to click + button for add condition first");
         }
       });
-      console.log(this.addLogic, "sss");
-      // this.isLoading = true;
-      // await this.updateIntent(this.editIntent);
-      // this.isLoading = false;
-      // console.log(this.editIntent);
-      // window.location.reload();
+      this.editIntent["responseCodition"] = this.destuctureLogic();
+      // this.addLogic.forEach((a, i) => {
+      //   if (a.length == 1) {
+      //     this.editIntent["responseCodition"][i].logics +=
+      //       "," +
+      //       this.lol["logic"] +
+      //       "," +
+      //       this.lol["attribute"] +
+      //       "," +
+      //       this.lol["condition"] +
+      //       "," +
+      //       this.lol["value"];
+      //   }
+      // });
+      console.log(this.editIntent, "sss");
+      this.isLoading = true;
+      await this.updateIntent(this.editIntent);
+      this.isLoading = false;
+      this.isAccept = true;
+      console.log(this.editIntent);
+      window.location.reload();
     }
   },
   computed: {
+    ATTRCHOICE() {
+      return this.attrChoice;
+    },
     openDialog() {
       return this.dialog;
+    },
+    rules() {
+      return [
+        // val => {
+        //   return (
+        //     !this.attrThatSelected[0].includes(val) ||
+        //     `${val} has been selected`
+        //   );
+        // }
+      ];
     }
   },
   watch: {
+    attrThatSelected(val) {
+      console.log(" asdasd  " + val);
+    },
     intent(val) {},
     dialog: function(oldProp, newProps) {
       if (newProps) {
-        alert("Anythings wag changed if you not accept it before");
+        if (!isAccept) {
+          alert("Anythings wasn't changed if you not accept it before");
+        }
         this.handleEditDialog(false);
       }
     },
@@ -468,7 +716,14 @@ export default {
       val["responseCodition"].forEach((a, index) => {
         conditions.push([]);
         this.addLogic.push([]);
-        this.addL.push(false)
+        this.attrThatSelected.push([]);
+        this.lol.push({
+          logic: "",
+          attribute: "",
+          value: "",
+          condition: ""
+        });
+        this.addL.push(false);
         // this.attrChoice.push([]);
         const logics = ("IF," + a["logics"]).split(",");
         for (let i = 0; i < logics.length; i += 4) {

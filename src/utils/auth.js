@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export function cAuth() {
-  const token = window.sessionStorage.getItem("auth");
+  const token = window.localStorage.getItem("auth");
   if (!token) {
     return false;
   } else {

@@ -32,10 +32,8 @@ export default {
   },
   watch: {
     dataRc: function(val) {
-      console.log("21321231321231");
       let c = "IF," + val.logics;
       this.logics = c.split(",");
-      console.log(" asdasd " + this.logics);
     }
   }
 };

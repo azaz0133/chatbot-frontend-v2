@@ -8,7 +8,7 @@ import Train from "./views/TrainingPhrase/screen.vue";
 Vue.use(Router);
 
 function auth(to, from, next) {
-  const token = window.sessionStorage.getItem("auth");
+  const token = window.localStorage.getItem("auth");
   if (token) {
     next();
   }
@@ -24,7 +24,7 @@ export default new Router({
       name: "welcome",
       component: Welcome,
       // redirect: function(to) {
-      //   const token = window.sessionStorage.getItem("auth");
+      //   const token = window.localStorage.getItem("auth");
       //   if (token) {
       //     return "/intent";
       //   }

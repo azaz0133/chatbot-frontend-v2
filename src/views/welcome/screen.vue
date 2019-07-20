@@ -68,11 +68,11 @@ export default {
               group: "foo",
               title: "Welcome Back",
               type: "success",
-              text: "Update At 17/july/2019 22.00\n"
+              text: "latest update " + new Date().toLocaleDateString()
             });
             const token = data["token"];
             this.note = "Login successful";
-            window.sessionStorage.setItem("auth", token);
+            window.localStorage.setItem("auth", token);
             this.$router.push("/intent");
           } else {
             console.log("object");

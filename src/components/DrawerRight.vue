@@ -9,7 +9,7 @@
   >
     <v-layout row wrap justify-center>
       <v-flex md9 xs9 lg9 class="pt-2">
-        <v-text-field v-model="message" class="ml-4" color="blue" box label="Type something..."></v-text-field>
+        <v-text-field @keyup.enter="sendMessageTest" v-model="message" class="ml-4" color="blue" box label="Type something..."></v-text-field>
       </v-flex>
       <v-flex md3 xs3 lg3 column class="pt-3">
         <v-btn @click="sendMessageTest" color="primary" style="display: inline-block;">
@@ -92,6 +92,7 @@ export default {
           console.log(data);
           this.loading = false
           this.intent = data.intentDetectNow;
+          this.message=""
           this.responseMessage = data.responseMessage;
           this.intents = data.memories.intents;
           this.attributes = data.memories.attributes;
