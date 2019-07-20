@@ -63,7 +63,12 @@ export default {
         data: { data }
       } = await Axios.get(API + "/proxy/get/intents");
       this.isLoadingIntent = false;
-      this.intents = data;
+      console.log(data);
+      this.intents = data.filter(
+        d => 
+          !d["displayName"].includes("Default Fallback Intent") &&
+          !d["displayName"].includes("Default Welcome Intent")
+      );
     },
     async openUpdateIntent(intent) {
       this.isLoadingIntent = true;
