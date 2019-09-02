@@ -32,6 +32,7 @@
       :updateIntent="updateIntent"
       :handleEditDialog="handleEditDialog"
     />
+   
   </v-container>
 </template>
 

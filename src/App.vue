@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <notifications group="foo"  position="top left"/>
+    <notifications group="foo" position="top left" />
     <drawer-left
       :drawer="isOpenDrawerLeft"
       :closeDrawer="closeLeftDrawer"
@@ -28,12 +28,34 @@
     <v-content>
       <router-view></router-view>
     </v-content>
+    <div class="chat">
+      <beautiful-chat
+        :participants="participants"
+        :titleImageUrl="titleImageUrl"
+        :onMessageWasSent="onMessageWasSent"
+        :messageList="messageList"
+        :newMessagesCount="newMessagesCount"
+        :isOpen="isChatOpen"
+        :close="closeChat"
+        :open="openChat"
+        :showEmoji="showEmoji"
+        :showFile="showFile"
+        :showTypingIndicator="showTypingIndicator"
+        :colors="colors"
+        :alwaysScrollToBottom="alwaysScrollToBottom"
+        :messageStyling="messageStyling"
+        @onType="handleOnType"
+      />
+    </div>
   </v-app>
 </template>
 
 <script>
 import DrawerLeft from "./components/DrawerLeft";
 import DrawerRight from "./components/DrawerRight";
+import * as all from "./chat";
+import { chatData } from "./chatData";
+import uuid from "uuid/v4";
 
 export default {
   name: "App",
@@ -41,9 +63,28 @@ export default {
     DrawerLeft,
     DrawerRight
   },
+  created() {
+    this.uuid = uuid();
+  },
   data() {
     return {
-      isOpenDrawerLeft: false
+      isOpenDrawerLeft: false,
+      uuid: "",
+      ...chatData
+      // chat: {
+      // participants: [
+      //   {
+      //     id:"admin",
+      //     name:"admin",
+      //     imageUrl:"https://www.winhelponline.com/blog/wp-content/uploads/2017/12/user.png"
+      //   },
+      //    {
+      //     id:"bot",
+      //     name:"bot",
+      //     imageUrl:"https://png.pngtree.com/svg/20170531/bot_906707.png"
+      //   }
+      // ]
+      // }
     };
   },
   methods: {
@@ -51,7 +92,8 @@ export default {
       if (isClose == false) {
         this.isOpenDrawerLeft = isClose;
       }
-    }
+    },
+    ...all
   }
 };
 </script>
@@ -65,7 +107,14 @@ export default {
 }
 
 body {
-  height: 2000px
+  height: 2000px;
+}
+
+.chat {
+  /* position: fixed;
+  bottom: 10;
+  left: 90; */
+  z-index: 100;
 }
 
 .center_div {

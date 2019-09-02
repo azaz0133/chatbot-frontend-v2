@@ -694,7 +694,7 @@ export default {
     intent(val) {},
     dialog: function(oldProp, newProps) {
       if (newProps) {
-        if (!isAccept) {
+        if (!this.isAccept) {
           alert("Anythings wasn't changed if you not accept it before");
         }
         this.handleEditDialog(false);

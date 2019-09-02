@@ -3,6 +3,9 @@ import './plugins/vuetify'
 import Notifications from 'vue-notification'
 import App from "./App.vue";
 import router from "./router";
+import Chat from 'vue-beautiful-chat'
+
+Vue.use(Chat)
 
 Vue.config.productionTip = false;
 Vue.use(Notifications)
