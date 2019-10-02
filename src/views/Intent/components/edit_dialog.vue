@@ -6,9 +6,9 @@
           class="headline grey lighten-2"
           primary-title
         >Edit Intent {{editIntent['displayName']}}</v-card-title>
-        <v-card-text>
-          <h4 class="subtitle">Training Phrases</h4>
-          <v-layout wrap row>
+        <v-card-text >
+          <h4 class="subtitle" v-if="editIntent['displayName'] != 'Default Fallback Intent'">Training Phrases</h4>
+          <v-layout wrap row v-if="editIntent['displayName'] != 'Default Fallback Intent'">
             <v-flex
               class="pa-2"
               md3
@@ -47,7 +47,7 @@
               </v-layout>
             </v-flex>
           </v-layout>
-          <v-layout>
+          <v-layout v-if="editIntent['displayName'] != 'Default Fallback Intent'">
             <v-flex md10 xs10 lg10>
               <h4 class="subtitle">Attributes</h4>
             </v-flex>
@@ -694,7 +694,7 @@ export default {
     intent(val) {},
     dialog: function(oldProp, newProps) {
       if (newProps) {
-        if (!this.isAccept) {
+        if (!isAccept) {
           alert("Anythings wasn't changed if you not accept it before");
         }
         this.handleEditDialog(false);

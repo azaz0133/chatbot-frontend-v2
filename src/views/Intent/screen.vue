@@ -13,7 +13,7 @@
           <v-list-tile-action>
             <v-icon color="warning" @click="openUpdateIntent(intent)" style="cursor: pointer;">edit</v-icon>
           </v-list-tile-action>
-          <v-list-tile-action>
+          <v-list-tile-action v-if="intent['displayName'] != 'Default Fallback Intent'">
             <v-icon
               color="red"
               @click="deleteIntent(index,intent['displayName'])"
@@ -32,7 +32,6 @@
       :updateIntent="updateIntent"
       :handleEditDialog="handleEditDialog"
     />
-   
   </v-container>
 </template>
 
@@ -67,9 +66,9 @@ export default {
       console.log(data);
       this.intents = data.filter(
         d => 
-          !d["displayName"].includes("Default Fallback Intent") &&
-          !d["displayName"].includes("Default Welcome Intent")
+          !d["displayName"].includes("Default Welcome Intent") 
       );
+     
     },
     async openUpdateIntent(intent) {
       this.isLoadingIntent = true;
@@ -95,7 +94,7 @@ export default {
         await Axios.post(API + "/proxy/df/delete/intent", {
           displayName
         });
-        this.intents = this.intents.filter((intent, index) => index != i);
+        this.intents = this.intents.filter((intent, index) => index != i  );
         return;
       } else {
         return;

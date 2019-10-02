@@ -28,7 +28,7 @@
     <v-content>
       <router-view></router-view>
     </v-content>
-    <div class="chat">
+    <div class="chat" v-if="loggedin">
       <beautiful-chat
         :participants="participants"
         :titleImageUrl="titleImageUrl"
@@ -56,6 +56,7 @@ import DrawerRight from "./components/DrawerRight";
 import * as all from "./chat";
 import { chatData } from "./chatData";
 import uuid from "uuid/v4";
+import { cAuth } from "./utils/auth";
 
 export default {
   name: "App",
@@ -65,11 +66,21 @@ export default {
   },
   created() {
     this.uuid = uuid();
+    if (cAuth() != false) {
+      this.loggedin = true;
+    }
+    let x = window.setInterval(() => {
+      if (cAuth() != false) {
+        this.loggedin = true;
+        window.clearInterval(x);
+      }
+    }, 1000);
   },
   data() {
     return {
       isOpenDrawerLeft: false,
       uuid: "",
+      loggedin: false,
       ...chatData
       // chat: {
       // participants: [
